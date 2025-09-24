@@ -75,15 +75,6 @@ const MobileEditView = ({
                 <span>{userData.isActive ? "Active" : "Inactive"}</span>
               )}
             </div>
-            {/* <Switch
-              checked={userData.isActive}
-              onChange={(newStatus) =>
-                handleStatusChange(userData._id, newStatus)
-              }
-              className="group inline-flex h-6 w-11 items-center rounded-full bg-gray-200 data-checked:bg-blue-600"
-            >
-              <span className="size-4 translate-x-1 rounded-full bg-white transition group-data-checked:translate-x-6" />
-            </Switch> */}
           </div>
 
           <div className="py-3 mt-4 flex justify-end gap-2">

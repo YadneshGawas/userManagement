@@ -35,7 +35,7 @@ const UserTable = ({ users, selected, setSelected }) => {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: 0.1, // each row appears 0.1s after the previous
+        staggerChildren: 0.1,
       },
     },
   };
@@ -192,12 +192,10 @@ const UserTable = ({ users, selected, setSelected }) => {
         </th>{" "}
         <SortableHeader sortKey="_id">ID</SortableHeader>{" "}
         <SortableHeader sortKey="name">Name</SortableHeader>{" "}
-        {/* Email column hidden on mobile */}{" "}
         <SortableHeader sortKey="email" className="hidden md:table-cell">
           {" "}
           Email{" "}
         </SortableHeader>{" "}
-        {/* Status column hidden on mobile */}{" "}
         <th className="py-2 px-2 w-2/12 hidden md:table-cell">Status</th>{" "}
         <th className="py-2 px-2 w-2/12">Actions</th>{" "}
       </tr>{" "}
@@ -231,7 +229,6 @@ const UserTable = ({ users, selected, setSelected }) => {
         </div>
       </td>
       <td className="px-2 py-2 flex flex-row gap-3 items-center text-gray-500">
-        {/* Desktop Actions */}
         <div className="hidden md:flex gap-3 items-center">
           <MdDeleteOutline
             className="size-5 text-red-500 cursor-pointer"
@@ -250,7 +247,6 @@ const UserTable = ({ users, selected, setSelected }) => {
           </Switch>
         </div>
 
-        {/* Mobile Action (single button) */}
         <div className="md:hidden flex justify-center items-center w-full">
           <button
             onClick={() => handleMobileClick(user)}

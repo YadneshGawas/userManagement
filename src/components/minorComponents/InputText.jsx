@@ -49,8 +49,6 @@ const InputText = React.forwardRef(
               icon ? "pl-10" : "pl-3",
               className
             )}
-            // supply these for form px-2.5 py-2.5 2xl:py-3
-            // supply rounded-3xl for control panel
             min={min}
           />
         </div>
