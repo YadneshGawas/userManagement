@@ -1,12 +1,23 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
+import "react-toastify/dist/ReactToastify.css";
 import { MdDeleteOutline, MdOutlineEdit } from "react-icons/md";
-import { FaArrowUp, FaArrowDown, FaArrowRight } from "react-icons/fa";
+import {
+  FaArrowUp,
+  FaArrowDown,
+  FaArrowRight,
+  FaArrowLeft,
+} from "react-icons/fa";
+import { BsThreeDots } from "react-icons/bs";
 import PopupInfo from "./minorComponents/PopupInfo";
-import ConfirmatioDialog from "./minorComponents/Dialog";
 import { Switch } from "@headlessui/react";
 import SelectList from "./minorComponents/SelectList";
 import CustomButton from "./minorComponents/CustomButton";
-import { FaArrowLeft } from "react-icons/fa6";
+import clsx from "clsx";
+import MobileEditView from "./minorComponents/MobileEditView";
+import { ToastContainer, toast } from "react-toastify";
+import { motion } from "framer-motion";
+import EnterAnimation from "./animations/EnterFade";
 
 const UserTable = ({ users, selected, setSelected }) => {
   const [localUsers, setLocalUsers] = useState(users);
@@ -17,10 +28,22 @@ const UserTable = ({ users, selected, setSelected }) => {
   });
   const [open, setOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState({
-    id: 3,
-    name: "15",
-  });
+  const [rowsPerPage, setRowsPerPage] = useState({ id: 3, name: "15" });
+  const [mobileAction, setMobileAction] = useState(false);
+
+  const tableVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.1, // each row appears 0.1s after the previous
+      },
+    },
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   useEffect(() => {
     setLocalUsers(users);
@@ -28,13 +51,29 @@ const UserTable = ({ users, selected, setSelected }) => {
 
   const handleEditClick = (e) => {
     setCurrentUser(e);
-    setOpen(true);
+    // setOpen(true);
+    console.log(e);
+  };
+
+  const handleMobileClick = (e) => {
+    console.log(e);
+    setCurrentUser(e);
+    setMobileAction(true);
   };
 
   const deleteHandler = (userToDelete) => {
-    setLocalUsers((prev) =>
-      prev.filter((user) => user._id !== userToDelete._id)
-    );
+    setLocalUsers((prev) => {
+      const updated = prev.filter((user) => user._id !== userToDelete._id);
+      const newTotalPages = Math.ceil(
+        updated.length / Number(rowsPerPage.name)
+      );
+      if (currentPage > newTotalPages) setCurrentPage(newTotalPages || 1);
+      return updated;
+    });
+
+    setSelected((prev) => prev.filter((user) => user._id !== userToDelete._id));
+    setMobileAction(false);
+    toast.success(`${userToDelete.name} deleted successfully!`);
   };
 
   const handleSelectAll = (event) => {
@@ -79,6 +118,7 @@ const UserTable = ({ users, selected, setSelected }) => {
         user._id === userId ? { ...user, isActive: newStatus } : user
       )
     );
+    toast.success("Status updated successfully!");
   };
 
   const sortedUsers = React.useMemo(() => {
@@ -108,7 +148,6 @@ const UserTable = ({ users, selected, setSelected }) => {
   const paginatedUsers = React.useMemo(() => {
     const startIndex = (currentPage - 1) * Number(rowsPerPage.name);
     const endIndex = startIndex + Number(rowsPerPage.name);
-    console.log("Paginating users:", { startIndex, endIndex });
     return sortedUsers.slice(startIndex, endIndex);
   }, [sortedUsers, currentPage, rowsPerPage.name]);
 
@@ -116,11 +155,14 @@ const UserTable = ({ users, selected, setSelected }) => {
     paginatedUsers.length > 0 &&
     paginatedUsers.every((u) => selected.some((s) => s._id === u._id));
 
-  const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
+  const SortableHeader = ({ children, sortKey, className }) => {
     const isSorted = sortConfig.key === sortKey;
     const direction = isSorted ? sortConfig.direction : "none";
     return (
-      <th className="py-2 px-2 cursor-pointer" onClick={() => onSort(sortKey)}>
+      <th
+        className={clsx("py-2 px-2 cursor-pointer", className)}
+        onClick={() => handleSort(sortKey)}
+      >
         <div className="flex items-center gap-2">
           {children}
           {isSorted &&
@@ -134,68 +176,53 @@ const UserTable = ({ users, selected, setSelected }) => {
     );
   };
 
-  const TableHeader = ({
-    onSelectAll,
-    isAllSelected,
-    numSelected,
-    rowCount,
-    onSort,
-    sortConfig,
-  }) => (
-    <thead className="border-b border-gray-300 max-w-full sticky top-0 bg-gray-700 z-10">
-      <tr key="header-row" className="text-white text-left bg-gray-700">
+  const TableHeader = () => (
+    <thead className="border-b border-gray-300 sticky top-0 bg-gray-700 z-10">
+      {" "}
+      <tr className="text-white text-left">
+        {" "}
         <th className="py-2 px-2 w-1/12">
+          {" "}
           <input
             type="checkbox"
             className="h-4 w-4 rounded border-gray-300"
-            ref={(input) => {
-              if (input) {
-                input.indeterminate = numSelected > 0 && numSelected < rowCount;
-              }
-            }}
             checked={isAllSelected}
-            onChange={onSelectAll}
-          />
-        </th>
-        <SortableHeader
-          sortKey="_id"
-          sortConfig={sortConfig}
-          onSort={onSort}
-          className="w-3/12"
-        >
-          ID
-        </SortableHeader>
-        <SortableHeader
-          sortKey="name"
-          sortConfig={sortConfig}
-          onSort={onSort}
-          className="w-3/12"
-        >
-          Name
-        </SortableHeader>
-        <SortableHeader sortKey="email" sortConfig={sortConfig} onSort={onSort}>
-          Email
-        </SortableHeader>
-        <th className="py-2 px-2 w-2/12">Status</th>
-        <th className="py-2 px-2 w-2/12">Actions</th>
-      </tr>
+            onChange={handleSelectAll}
+          />{" "}
+        </th>{" "}
+        <SortableHeader sortKey="_id">ID</SortableHeader>{" "}
+        <SortableHeader sortKey="name">Name</SortableHeader>{" "}
+        {/* Email column hidden on mobile */}{" "}
+        <SortableHeader sortKey="email" className="hidden md:table-cell">
+          {" "}
+          Email{" "}
+        </SortableHeader>{" "}
+        {/* Status column hidden on mobile */}{" "}
+        <th className="py-2 px-2 w-2/12 hidden md:table-cell">Status</th>{" "}
+        <th className="py-2 px-2 w-2/12">Actions</th>{" "}
+      </tr>{" "}
     </thead>
   );
-
-  const TableRow = ({ user, onSelect, isSelected }) => (
-    <tr className="w-full border-b border-gray-200 text-gray-600 hover:bg-gray-400/10 relative">
+  const TableRow = ({
+    user,
+    isSelected,
+    deleteHandler,
+    handleEditClick,
+    handleStatusChange,
+  }) => (
+    <tr className="border-b border-gray-200 text-gray-600 hover:bg-gray-400/10">
       <td className="p-2">
         <input
           type="checkbox"
           className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
           checked={isSelected}
-          onChange={() => onSelect(user)}
+          onChange={() => handleSelectOne(user)}
         />
       </td>
       <td className="p-2">{user._id.slice(-6)}</td>
       <td className="p-2">{user.name}</td>
-      <td className="p-2">{user.email}</td>
-      <td className="p-2">
+      <td className="p-2 hidden md:table-cell">{user.email}</td>
+      <td className="p-2 hidden md:table-cell">
         <div className="flex items-center gap-2">
           <span
             className={`w-3 h-3 rounded-full ${user.isActive ? "bg-green-500" : "bg-red-500"}`}
@@ -203,28 +230,40 @@ const UserTable = ({ users, selected, setSelected }) => {
           <span>{user.isActive ? "Active" : "Inactive"}</span>
         </div>
       </td>
-      <td className="px-2 py-2 flex flex-row gap-3 justify-start items-center text-gray-500">
-        <MdDeleteOutline
-          className="size-5 text-red-500 cursor-pointer"
-          onClick={() => deleteHandler(user)}
-        />
-        <MdOutlineEdit
-          className="size-5 text-blue-500 cursor-pointer"
-          onClick={() => handleEditClick(user)}
-        />
+      <td className="px-2 py-2 flex flex-row gap-3 items-center text-gray-500">
+        {/* Desktop Actions */}
+        <div className="hidden md:flex gap-3 items-center">
+          <MdDeleteOutline
+            className="size-5 text-red-500 cursor-pointer"
+            onClick={() => deleteHandler(user)}
+          />
+          <MdOutlineEdit
+            className="size-5 text-blue-500 cursor-pointer"
+            onClick={() => handleEditClick(user)}
+          />
+          <Switch
+            checked={user.isActive}
+            onChange={(newStatus) => handleStatusChange(user._id, newStatus)}
+            className="group inline-flex h-6 w-11 items-center rounded-full bg-gray-200 data-checked:bg-blue-600"
+          >
+            <span className="size-4 translate-x-1 rounded-full bg-white transition group-data-checked:translate-x-6" />
+          </Switch>
+        </div>
 
-        <Switch
-          checked={user.isActive}
-          onChange={(newStatus) => handleStatusChange(user._id, newStatus)}
-          className="group inline-flex h-6 w-11 items-center rounded-full bg-gray-200 data-checked:bg-blue-600"
-        >
-          <span className="size-4 translate-x-1 rounded-full bg-white transition group-data-checked:translate-x-6" />
-        </Switch>
+        {/* Mobile Action (single button) */}
+        <div className="md:hidden flex justify-center items-center w-full">
+          <button
+            onClick={() => handleMobileClick(user)}
+            className="text-gray-700"
+          >
+            <BsThreeDots size={20} />
+          </button>
+        </div>
       </td>
     </tr>
   );
 
-  const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const Pagination = ({ currentPage, totalPages }) => {
     if (totalPages <= 1) return null;
 
     const getPageNumbers = () => {
@@ -233,48 +272,30 @@ const UserTable = ({ users, selected, setSelected }) => {
       const half = Math.floor(maxPagesToShow / 2);
 
       if (totalPages <= maxPagesToShow + 2) {
-        for (let i = 1; i <= totalPages; i++) {
-          pageNumbers.push(i);
-        }
+        for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
       } else {
         pageNumbers.push(1);
-        if (currentPage > half + 2) {
-          pageNumbers.push("...");
-        }
-
+        if (currentPage > half + 2) pageNumbers.push("...");
         let start = Math.max(2, currentPage - half);
         let end = Math.min(totalPages - 1, currentPage + half);
-
-        if (currentPage <= half + 1) {
-          end = maxPagesToShow;
-        }
-
-        if (currentPage >= totalPages - half) {
+        if (currentPage <= half + 1) end = maxPagesToShow;
+        if (currentPage >= totalPages - half)
           start = totalPages - maxPagesToShow + 1;
-        }
-
-        for (let i = start; i <= end; i++) {
-          pageNumbers.push(i);
-        }
-
-        if (currentPage < totalPages - half - 1) {
-          pageNumbers.push("...");
-        }
-
+        for (let i = start; i <= end; i++) pageNumbers.push(i);
+        if (currentPage < totalPages - half - 1) pageNumbers.push("...");
         pageNumbers.push(totalPages);
       }
       return pageNumbers;
     };
 
     return (
-      <div className="flex justify-end items-center mt-4">
+      <div className="flex justify-end items-center">
         <CustomButton
           icon={<FaArrowLeft />}
-          className=" text-xl text-gray-800 px-3 py-3 mx-1 bg-white border rounded-full border-gray-300 disabled:opacity-50"
-          onClick={() => onPageChange(currentPage - 1)}
+          className="text-xs px-3 py-3 mx-1 bg-white border rounded-full disabled:opacity-50"
+          onClick={() => setCurrentPage(currentPage - 1)}
           status={currentPage === 1}
         />
-
         {getPageNumbers().map((number, index) =>
           typeof number === "string" ? (
             <span key={`dots-${index}`} className="px-3 py-1 mx-1">
@@ -283,16 +304,20 @@ const UserTable = ({ users, selected, setSelected }) => {
           ) : (
             <CustomButton
               key={number}
-              className={`text-sm px-4.5 py-3 mx-1 rounded-full ${currentPage === number ? " bg-gray-700 text-white" : "bg-gray-200"}`}
-              onClick={() => onPageChange(number)}
+              className={`text-xs px-4.5 py-3 mx-1 rounded-full ${
+                currentPage === number
+                  ? "bg-gray-700 text-white"
+                  : "bg-gray-200"
+              }`}
+              onClick={() => setCurrentPage(number)}
               label={number}
             />
           )
         )}
         <CustomButton
           icon={<FaArrowRight />}
-          className="text-xl text-gray-800 px-3 py-3 mx-1 bg-white border rounded-full border-gray-300 disabled:opacity-50"
-          onClick={() => onPageChange(currentPage + 1)}
+          className="text-xs px-3 py-3 mx-1 bg-white border rounded-full disabled:opacity-50"
+          onClick={() => setCurrentPage(currentPage + 1)}
           status={currentPage === totalPages}
         />
       </div>
@@ -300,61 +325,66 @@ const UserTable = ({ users, selected, setSelected }) => {
   };
 
   return (
-    <div className="min-w-screen bg-white rounded h-[calc(100vh-80px)] flex flex-col relative">
-      <div className="w-full overflow-y-auto">
-        <table className="w-full h-full">
-          <TableHeader
-            onSelectAll={handleSelectAll}
-            isAllSelected={isAllSelected}
-            numSelected={
-              selected.filter((s) =>
-                paginatedUsers.some((p) => p._id === s._id)
-              ).length
-            }
-            rowCount={paginatedUsers.length}
-            onSort={handleSort}
-            sortConfig={sortConfig}
-          />
-          <tbody>
-            {paginatedUsers?.map((user, index) => (
-              <TableRow
-                key={index}
-                user={user}
-                isSelected={selected.some((u) => u._id === user._id)}
-                onSelect={handleSelectOne}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 w-full p-4 border-t border-gray-200 flex justify-between items-center bg-white">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <span>Rows per page:</span>
-          <SelectList
-            options={[
-              { id: 1, name: "5" },
-              { id: 2, name: "10" },
-              { id: 3, name: "15" },
-            ]}
-            selected={rowsPerPage}
-            setSelected={setRowsPerPage}
-            className="min-w-16"
-          />
+    <div className="min-w-screen bg-white rounded h-full flex flex-col relative">
+      <EnterAnimation>
+        <div className="w-full overflow-y-auto">
+          <table className="w-full h-full">
+            <TableHeader />
+            <tbody>
+              {paginatedUsers?.map((user, index) => (
+                <TableRow
+                  key={user._id}
+                  user={user}
+                  isSelected={selected.some((u) => u._id === user._id)}
+                  deleteHandler={deleteHandler}
+                  handleEditClick={handleEditClick}
+                  handleStatusChange={handleStatusChange}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+      </EnterAnimation>
+
+      <div className="absolute bottom-0 left-0 right-0 w-full p-4 border-t gap-2 border-gray-200 flex flex-col justify-between items-center bg-white md:flex-row">
+        <EnterAnimation>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Rows per page:</span>
+            <SelectList
+              options={[
+                { id: 1, name: "5" },
+                { id: 2, name: "10" },
+                { id: 3, name: "15" },
+              ]}
+              selected={rowsPerPage}
+              setSelected={setRowsPerPage}
+              className="min-w-16"
+            />
+          </div>
+        </EnterAnimation>
+        <EnterAnimation>
+          <div>
+            <Pagination currentPage={currentPage} totalPages={totalPages} />
+          </div>
+        </EnterAnimation>
       </div>
 
       <PopupInfo
         open={open}
         setOpen={setOpen}
         userData={currentUser}
-        key={currentUser ? currentUser._id : "new-user"}
+        key={currentUser}
       />
+
+      <MobileEditView
+        open={mobileAction}
+        setOpen={setMobileAction}
+        userData={localUsers.find((u) => u._id === currentUser._id)}
+        deleteHandler={deleteHandler}
+        handleEditClick={handleEditClick}
+        handleStatusChange={handleStatusChange}
+      />
+      <ToastContainer />
     </div>
   );
 };

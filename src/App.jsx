@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import ControlPanel from "./components/ControlPanel";
 import UserTable from "./components/UserTable";
 import { users as usersData } from "./assets/data";
+import EnterAnimation from "./components/animations/EnterFade";
 
 const statusOptions = [
   { id: 1, name: "All" },
@@ -16,8 +17,6 @@ function App() {
   const [checked, setChecked] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(statusOptions[0]);
-
-  console.log("Selected from App:", selected);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -37,16 +36,18 @@ function App() {
   }, [users, searchTerm, selectedStatus]);
 
   return (
-    <main className=" w-full min-h-screen bg-white">
+    <main className=" w-full min-h-screen bg-white overflow-hidden">
       <div className=" w-full h-screen flex flex-col">
-        <ControlPanel
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedStatus={selectedStatus}
-          setSelectedStatus={setSelectedStatus}
-          statusOptions={statusOptions}
-          users={selected}
-        />
+        <EnterAnimation>
+          <ControlPanel
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+            statusOptions={statusOptions}
+            users={selected}
+          />
+        </EnterAnimation>
         <UserTable
           users={filteredUsers}
           checked={checked}

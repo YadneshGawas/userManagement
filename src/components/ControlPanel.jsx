@@ -1,7 +1,5 @@
 import InputText from "./minorComponents/InputText";
 import SelectList from "./minorComponents/SelectList";
-import CustomButton from "./minorComponents/CustomButton";
-import { MdImportExport, MdAdd } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
 import Dropdown from "./minorComponents/dropDown";
 
@@ -15,7 +13,7 @@ export default function ControlPanel({
 }) {
   return (
     <div className="p-4 bg-gray-100 border-b border-gray-300">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <InputText
             value={searchTerm}
@@ -30,10 +28,7 @@ export default function ControlPanel({
             setSelected={setSelectedStatus}
           />
         </div>
-        <div className="flex flex-col sm:flex-row gap-4"></div>
-        <div>
-          <Dropdown users={users} />
-        </div>
+        <Dropdown users={users} />
       </div>
     </div>
   );
