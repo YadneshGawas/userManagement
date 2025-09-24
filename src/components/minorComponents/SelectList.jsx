@@ -9,7 +9,7 @@ import {
 import { ChevronUpDownIcon } from "@heroicons/react/16/solid";
 import { CheckIcon } from "@heroicons/react/20/solid";
 
-export default function SelectList({ label, options, selected, setSelected }) {
+export default function SelectList({ options, selected, setSelected }) {
   return (
     <div>
       <div className="relative min-w-32">
@@ -25,7 +25,8 @@ export default function SelectList({ label, options, selected, setSelected }) {
           </ListboxButton>
           <ListboxOptions
             transition
-            className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg border border-gray-300"
+            className="absolute z-10 mt-1 max-h-56 overflow-auto rounded-md bg-white py-1 text-base shadow-lg border border-gray-300"
+            anchor="top"
           >
             {options.map((item) => (
               <ListboxOption

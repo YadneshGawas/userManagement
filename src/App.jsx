@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import ControlPanel from "./components/ControlPanel";
 import UserTable from "./components/UserTable";
-import { users } from "./assets/data";
+import { users as usersData } from "./assets/data";
 
 const statusOptions = [
   { id: 1, name: "All" },
@@ -10,10 +10,17 @@ const statusOptions = [
 ];
 
 function App() {
+  const [users, setUsers] = useState(usersData);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(statusOptions[0]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 15;
+
+  const handleUpdateUser = (updatedUser) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user._id === updatedUser._id ? updatedUser : user
+      )
+    );
+  };
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -22,20 +29,15 @@ function App() {
         user.name.toLowerCase().includes(lowerCaseSearchTerm) ||
         user.email.toLowerCase().includes(lowerCaseSearchTerm);
 
-      const statusMatch =
-        selectedStatus.name === "All" ||
-        user.isActive === (selectedStatus.name === "Active");
+      let statusMatch = true;
+      if (selectedStatus.name === "Active") {
+        statusMatch = user.isActive;
+      } else if (selectedStatus.name === "Inactive") {
+        statusMatch = !user.isActive;
+      }
       return searchMatch && statusMatch;
     });
   }, [users, searchTerm, selectedStatus]);
-
-  const paginatedUsers = useMemo(() => {
-    const indexOfLastUser = currentPage * usersPerPage;
-    const indexOfFirstUser = indexOfLastUser - usersPerPage;
-    return filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-  }, [filteredUsers, currentPage, usersPerPage]);
-
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
   return (
     <main className=" w-full min-h-screen bg-white">
@@ -47,12 +49,7 @@ function App() {
           setSelectedStatus={setSelectedStatus}
           statusOptions={statusOptions}
         />
-        <UserTable
-          users={paginatedUsers}
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          totalPages={totalPages}
-        />
+        <UserTable users={filteredUsers} />
       </div>
     </main>
   );

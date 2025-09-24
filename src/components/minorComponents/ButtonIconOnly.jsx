@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import React from "react";
 
-const CustomButton = ({
+const ButtonIconOnly = ({
   icon,
   className,
   label,
@@ -20,10 +20,10 @@ const CustomButton = ({
         onClick(); // Call the onClick function passed as a prop
       }}
     >
-      {icon && <span>{icon}</span>}
+      {/* {icon && <span>{icon}</span>} */}
       <span>{label}</span>
     </button>
   );
 };
 
-export default CustomButton;
+export default ButtonIconOnly;
