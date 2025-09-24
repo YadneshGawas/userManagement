@@ -8,61 +8,55 @@ import SelectList from "./minorComponents/SelectList";
 import CustomButton from "./minorComponents/CustomButton";
 import { FaArrowLeft } from "react-icons/fa6";
 
-const UserTable = ({ users }) => {
+const UserTable = ({ users, selected, setSelected }) => {
   const [localUsers, setLocalUsers] = useState(users);
-  const [selected, setSelected] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({
     key: "_id",
-    direction: "ascending", // Default sort by _id ascending
+    direction: "ascending",
   });
   const [open, setOpen] = useState(false);
-  const [openDelete, setOpenDelete] = useState(false);
   const [currentUser, setCurrentUser] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState({
-    id: 1,
-    name: "5",
+    id: 3,
+    name: "15",
   });
 
   useEffect(() => {
-    // Only reset localUsers when the source `users` prop changes identity,
-    // which happens when filters are applied in App.jsx.
-    // This prevents pagination from resetting local deletions.
     setLocalUsers(users);
   }, [users]);
 
   const handleEditClick = (e) => {
     setCurrentUser(e);
     setOpen(true);
-    console.log(e);
   };
 
-  const handleDeleteClick = (e) => {
-    setCurrentUser(e);
-    setOpenDelete(true);
-  };
-
-  const deleteHandler = () => {
+  const deleteHandler = (userToDelete) => {
     setLocalUsers((prev) =>
-      prev.filter((user) => user._id !== currentUser._id)
+      prev.filter((user) => user._id !== userToDelete._id)
     );
-    setOpenDelete(false);
   };
 
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelected(localUsers.map((user) => user._id));
+      setSelected((prev) => {
+        const pageUsers = paginatedUsers.filter(
+          (user) => !prev.some((u) => u._id === user._id)
+        );
+        return [...prev, ...pageUsers];
+      });
     } else {
-      setSelected([]);
+      setSelected((prev) =>
+        prev.filter((user) => !paginatedUsers.some((p) => p._id === user._id))
+      );
     }
   };
 
-  const handleSelectOne = (id) => {
-    setSelected((prevSelected) =>
-      prevSelected.includes(id)
-        ? prevSelected.filter((selectedId) => selectedId !== id)
-        : [...prevSelected, id]
-    );
+  const handleSelectOne = (user) => {
+    setSelected((prev) => {
+      const exists = prev.some((u) => u._id === user._id);
+      return exists ? prev.filter((u) => u._id !== user._id) : [...prev, user];
+    });
   };
 
   const handleSort = (key) => {
@@ -79,6 +73,12 @@ const UserTable = ({ users }) => {
         user._id === userId ? { ...user, isActive: newStatus } : user
       )
     );
+
+    setSelected((prevSelected) =>
+      prevSelected.map((user) =>
+        user._id === userId ? { ...user, isActive: newStatus } : user
+      )
+    );
   };
 
   const sortedUsers = React.useMemo(() => {
@@ -89,7 +89,6 @@ const UserTable = ({ users }) => {
         let valB = b[sortConfig.key];
         let comparison = 0;
 
-        // Handle numeric sorting for _id field
         if (sortConfig.key === "_id") {
           comparison = Number(valA) - Number(valB);
         } else {
@@ -114,7 +113,8 @@ const UserTable = ({ users }) => {
   }, [sortedUsers, currentPage, rowsPerPage.name]);
 
   const isAllSelected =
-    localUsers.length > 0 && selected.length === localUsers.length;
+    paginatedUsers.length > 0 &&
+    paginatedUsers.every((u) => selected.some((s) => s._id === u._id));
 
   const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
     const isSorted = sortConfig.key === sortKey;
@@ -147,7 +147,7 @@ const UserTable = ({ users }) => {
         <th className="py-2 px-2 w-1/12">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            className="h-4 w-4 rounded border-gray-300"
             ref={(input) => {
               if (input) {
                 input.indeterminate = numSelected > 0 && numSelected < rowCount;
@@ -157,7 +157,14 @@ const UserTable = ({ users }) => {
             onChange={onSelectAll}
           />
         </th>
-        <th className="py-2 px-2 w-2/12">ID</th>
+        <SortableHeader
+          sortKey="_id"
+          sortConfig={sortConfig}
+          onSort={onSort}
+          className="w-3/12"
+        >
+          ID
+        </SortableHeader>
         <SortableHeader
           sortKey="name"
           sortConfig={sortConfig}
@@ -182,7 +189,7 @@ const UserTable = ({ users }) => {
           type="checkbox"
           className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
           checked={isSelected}
-          onChange={() => onSelect(user._id)}
+          onChange={() => onSelect(user)}
         />
       </td>
       <td className="p-2">{user._id.slice(-6)}</td>
@@ -199,7 +206,7 @@ const UserTable = ({ users }) => {
       <td className="px-2 py-2 flex flex-row gap-3 justify-start items-center text-gray-500">
         <MdDeleteOutline
           className="size-5 text-red-500 cursor-pointer"
-          onClick={() => handleDeleteClick(user)}
+          onClick={() => deleteHandler(user)}
         />
         <MdOutlineEdit
           className="size-5 text-blue-500 cursor-pointer"
@@ -275,6 +282,7 @@ const UserTable = ({ users }) => {
             </span>
           ) : (
             <CustomButton
+              key={number}
               className={`text-sm px-4.5 py-3 mx-1 rounded-full ${currentPage === number ? " bg-gray-700 text-white" : "bg-gray-200"}`}
               onClick={() => onPageChange(number)}
               label={number}
@@ -298,8 +306,12 @@ const UserTable = ({ users }) => {
           <TableHeader
             onSelectAll={handleSelectAll}
             isAllSelected={isAllSelected}
-            numSelected={selected.length}
-            rowCount={localUsers.length}
+            numSelected={
+              selected.filter((s) =>
+                paginatedUsers.some((p) => p._id === s._id)
+              ).length
+            }
+            rowCount={paginatedUsers.length}
             onSort={handleSort}
             sortConfig={sortConfig}
           />
@@ -308,7 +320,7 @@ const UserTable = ({ users }) => {
               <TableRow
                 key={index}
                 user={user}
-                isSelected={selected.indexOf(user._id) !== -1}
+                isSelected={selected.some((u) => u._id === user._id)}
                 onSelect={handleSelectOne}
               />
             ))}
@@ -337,11 +349,6 @@ const UserTable = ({ users }) => {
         />
       </div>
 
-      <ConfirmatioDialog
-        open={openDelete}
-        setOpen={setOpenDelete}
-        onClick={deleteHandler}
-      />
       <PopupInfo
         open={open}
         setOpen={setOpen}

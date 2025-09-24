@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useMemo } from "react";
 import ControlPanel from "./components/ControlPanel";
 import UserTable from "./components/UserTable";
@@ -11,16 +12,12 @@ const statusOptions = [
 
 function App() {
   const [users, setUsers] = useState(usersData);
+  const [selected, setSelected] = useState([]);
+  const [checked, setChecked] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(statusOptions[0]);
 
-  const handleUpdateUser = (updatedUser) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user._id === updatedUser._id ? updatedUser : user
-      )
-    );
-  };
+  console.log("Selected from App:", selected);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -48,8 +45,15 @@ function App() {
           selectedStatus={selectedStatus}
           setSelectedStatus={setSelectedStatus}
           statusOptions={statusOptions}
+          users={selected}
         />
-        <UserTable users={filteredUsers} />
+        <UserTable
+          users={filteredUsers}
+          checked={checked}
+          setChecked={setChecked}
+          selected={selected}
+          setSelected={setSelected}
+        />
       </div>
     </main>
   );

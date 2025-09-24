@@ -32,12 +32,12 @@ export default function SelectList({ options, selected, setSelected }) {
               <ListboxOption
                 key={item.id}
                 value={item}
-                className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-500  data-focus:text-gray-700 data-focus:bg-indigo-300"
+                className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-500   data-[focus]:bg-gray-100"
               >
                 <span className="block truncate font-normal group-data-selected:font-semibold">
                   {item.name}
                 </span>
-                <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-data-focus:text-gray-700 [.group:not([data-selected])_&]:hidden">
+                <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 group-data-focus:text-gray-700 [.group:not([data-selected])_&]:hidden">
                   <CheckIcon aria-hidden="true" className="h-5 w-5" />
                 </span>
               </ListboxOption>

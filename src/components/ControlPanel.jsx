@@ -3,6 +3,7 @@ import SelectList from "./minorComponents/SelectList";
 import CustomButton from "./minorComponents/CustomButton";
 import { MdImportExport, MdAdd } from "react-icons/md";
 import { CiSearch } from "react-icons/ci";
+import Dropdown from "./minorComponents/dropDown";
 
 export default function ControlPanel({
   searchTerm,
@@ -10,6 +11,7 @@ export default function ControlPanel({
   selectedStatus,
   setSelectedStatus,
   statusOptions,
+  users,
 }) {
   return (
     <div className="p-4 bg-gray-100 border-b border-gray-300">
@@ -28,12 +30,9 @@ export default function ControlPanel({
             setSelected={setSelectedStatus}
           />
         </div>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <CustomButton
-            icon={<MdImportExport />}
-            label="Export"
-            className="group inline-flex items-center justify-center sm:justify-start sm:gap-2 rounded-full sm:rounded-3xl bg-white p-4 sm:px-3 sm:py-1.5 text-sm/6 font-semibold text-gray-500 shadow-inner shadow-white/10 hover:bg-gray-600 hover:text-white border border-gray-300"
-          />
+        <div className="flex flex-col sm:flex-row gap-4"></div>
+        <div>
+          <Dropdown users={users} />
         </div>
       </div>
     </div>
