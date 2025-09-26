@@ -322,8 +322,7 @@ const UserTable = ({ users, selected, setSelected }) => {
 
   return (
     <div className="min-w-screen bg-white rounded h-full flex flex-col">
-      {/* Table Area (scrollable rows) */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-50">
         <EnterAnimation>
           <table className="w-full">
             <TableHeader />
@@ -343,7 +342,6 @@ const UserTable = ({ users, selected, setSelected }) => {
         </EnterAnimation>
       </div>
 
-      {/* Sticky Footer (always visible) */}
       <div className="w-full p-4 border-t gap-2 border-gray-200 flex flex-col justify-between items-center bg-white md:flex-row sticky bottom-0">
         <EnterAnimation>
           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -367,7 +365,6 @@ const UserTable = ({ users, selected, setSelected }) => {
         </EnterAnimation>
       </div>
 
-      {/* Popups & Toasts */}
       <PopupInfo
         open={open}
         setOpen={setOpen}
